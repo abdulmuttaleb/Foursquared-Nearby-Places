@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.TextView
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -16,6 +17,8 @@ class MainActivity : BaseActivity(){
 
     lateinit var typeSwitchTextView: TextView
     lateinit var placesRecyclerView: RecyclerView
+    lateinit var emptyDataView:View
+    lateinit var noConnectionView:View
 
     lateinit var sharedPreferences:SharedPreferences
 
@@ -25,10 +28,10 @@ class MainActivity : BaseActivity(){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        activityUiInit()
+        activityInit()
     }
 
-    fun activityUiInit(){
+    fun activityInit(){
         sharedPreferences = getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE)
 
         operationalMode.postValue(sharedPreferences.getString(Constants.PREF_MODE_KEY, Constants.MODE_REALTIME))
@@ -45,8 +48,12 @@ class MainActivity : BaseActivity(){
                 }
             }
         })
+
+        // init ui vars
         typeSwitchTextView = findViewById(R.id.tv_type_switch)
         placesRecyclerView = findViewById(R.id.rv_places)
+        emptyDataView = findViewById(R.id.cl_empty)
+        noConnectionView = findViewById(R.id.cl_no_connection)
 
         //init click functionality
         typeSwitchTextView.setOnClickListener {
@@ -56,6 +63,17 @@ class MainActivity : BaseActivity(){
         //init connectivity observer
         isOnline.observe(this, Observer {
             Log.e(TAG, "connection: $it")
+            when(it){
+                true ->{
+                    noConnectionView.visibility = View.GONE
+                    placesRecyclerView.visibility = View.VISIBLE
+                }
+
+                false ->{
+                    noConnectionView.visibility = View.VISIBLE
+                    placesRecyclerView.visibility = View.GONE
+                }
+            }
         })
     }
 
