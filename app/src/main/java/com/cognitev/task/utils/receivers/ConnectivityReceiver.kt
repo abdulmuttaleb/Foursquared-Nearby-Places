@@ -1,8 +1,6 @@
-package com.cognitev.task.utils
+package com.cognitev.task.utils.receivers
 
-import android.net.NetworkInfo
 import android.content.Context.CONNECTIVITY_SERVICE
-import androidx.core.content.ContextCompat.getSystemService
 import android.net.ConnectivityManager
 import android.content.Intent
 import android.content.BroadcastReceiver

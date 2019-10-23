@@ -1,16 +1,10 @@
 package com.cognitev.task.view.activity
 
-import android.app.ProgressDialog
-import android.content.Context
-import android.net.ConnectivityManager
-import android.os.Build
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.cognitev.task.R
-import com.cognitev.task.utils.ConnectivityReceiver
+import com.cognitev.task.MyApplication
+import com.cognitev.task.utils.receivers.ConnectivityReceiver
 import io.reactivex.disposables.Disposable
 
 
@@ -24,6 +18,7 @@ open class BaseActivity : AppCompatActivity(), ConnectivityReceiver.Connectivity
         disposables!!.forEach {
             it!!.dispose()
         }
+        MyApplication.instance!!.removeConnectivityListener()
     }
 
     fun showToast(message: String){
@@ -32,5 +27,10 @@ open class BaseActivity : AppCompatActivity(), ConnectivityReceiver.Connectivity
 
     override fun onNetworkConnectionChanged(isConnected: Boolean) {
         isOnline.postValue(isConnected)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        MyApplication.instance!!.setConnectivityListener(this)
     }
 }

@@ -4,7 +4,7 @@ import android.app.Application
 import android.net.ConnectivityManager
 import android.content.IntentFilter
 import android.os.Build
-import com.cognitev.task.utils.ConnectivityReceiver
+import com.cognitev.task.utils.receivers.ConnectivityReceiver
 
 
 class MyApplication : Application() {
