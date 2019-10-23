@@ -72,6 +72,7 @@ class MainActivity : BaseActivity(){
                 false ->{
                     noConnectionView.visibility = View.VISIBLE
                     placesRecyclerView.visibility = View.GONE
+                    emptyDataView.visibility = View.GONE
                 }
             }
         })
