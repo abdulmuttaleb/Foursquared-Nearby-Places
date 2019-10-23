@@ -19,6 +19,13 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField "String", "FOURSQUARED_CLIENT_ID", foursquared_client_id
+            buildConfigField "String", "FOURSQUARED_CLIENT_SECRET", foursquared_client_secret
+        }
+        debug{
+            buildConfigField "String", "FOURSQUARED_CLIENT_ID", foursquared_client_id
+            buildConfigField "String", "FOURSQUARED_CLIENT_SECRET", foursquared_client_secret
+
         }
     }
 }
