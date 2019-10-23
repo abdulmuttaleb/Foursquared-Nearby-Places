@@ -10,13 +10,15 @@ import io.reactivex.disposables.Disposable
 
 open class BaseActivity : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverListener {
 
-    var disposables: ArrayList<Disposable?>? = null
+    var disposables: ArrayList<Disposable> = arrayListOf()
     var isOnline = MutableLiveData<Boolean>().apply { value = false }
 
     override fun onPause() {
         super.onPause()
-        disposables!!.forEach {
-            it!!.dispose()
+        if(disposables.isNotEmpty()) {
+            disposables.forEach {
+                it.dispose()
+            }
         }
         MyApplication.instance!!.removeConnectivityListener()
     }
