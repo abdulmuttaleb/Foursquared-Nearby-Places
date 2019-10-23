@@ -12,4 +12,7 @@ object Constants{
     val LOCATION_PERMISSIONS = arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION,
         android.Manifest.permission.ACCESS_COARSE_LOCATION)
     const val LOCATION_REQUEST = 1
+
+    //api vars
+    const val API_BASE_URL = "https://api.foursquare.com/v2/venues/"
 }
