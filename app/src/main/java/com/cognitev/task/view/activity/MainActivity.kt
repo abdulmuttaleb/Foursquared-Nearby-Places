@@ -1,17 +1,20 @@
 package com.cognitev.task.view.activity
 
+import android.Manifest
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.TextView
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
 import com.cognitev.task.R
-import com.cognitev.task.util.Constants
+import com.cognitev.task.utils.Constants
 
 class MainActivity : BaseActivity(){
 
@@ -28,6 +31,8 @@ class MainActivity : BaseActivity(){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        checkPermissions()
+
         activityInit()
     }
 
@@ -41,10 +46,14 @@ class MainActivity : BaseActivity(){
             when(it){
                 Constants.MODE_REALTIME ->{
                     typeSwitchTextView.text = "Realtime"
+
+                    //todo init location listener
                 }
 
                 Constants.MODE_SINGLE->{
                     typeSwitchTextView.text = "Single Update"
+
+                    //todo fetch places one time
                 }
             }
         })
@@ -95,6 +104,26 @@ class MainActivity : BaseActivity(){
         }
     }
 
+    fun checkPermissions(){
+        if(ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+            && ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            getLocationPermission()
+        }
+    }
+
+    private fun getLocationPermission() {
+        ActivityCompat.requestPermissions(this,Constants.LOCATION_PERMISSIONS,Constants.LOCATION_REQUEST)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        if (requestCode == Constants.LOCATION_REQUEST) {
+            if(!grantResults.all { it == PackageManager.PERMISSION_GRANTED }){
+                getLocationPermission()
+            }
+        }
+    }
     companion object{
         const val TAG = "MainActivity"
     }
