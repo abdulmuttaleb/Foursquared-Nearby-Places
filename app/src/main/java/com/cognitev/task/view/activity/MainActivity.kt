@@ -5,16 +5,18 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
 import com.cognitev.task.R
 import com.cognitev.task.utils.Constants
+import com.google.android.gms.location.*
+import org.json.JSONObject
 
 class MainActivity : BaseActivity(){
 
@@ -27,11 +29,18 @@ class MainActivity : BaseActivity(){
 
     var operationalMode: MutableLiveData<String> = MutableLiveData()
 
+    //location vars
+    private lateinit var locationCallback: LocationCallback
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    lateinit var locationRequest:LocationRequest
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         checkPermissions()
+
+        initLocationTracking()
 
         activityInit()
     }
@@ -46,14 +55,12 @@ class MainActivity : BaseActivity(){
             when(it){
                 Constants.MODE_REALTIME ->{
                     typeSwitchTextView.text = "Realtime"
-
-                    //todo init location listener
+                    registerLocationTracking()
                 }
 
                 Constants.MODE_SINGLE->{
                     typeSwitchTextView.text = "Single Update"
-
-                    //todo fetch places one time
+                    unregisterLocationTracking()
                 }
             }
         })
@@ -103,6 +110,52 @@ class MainActivity : BaseActivity(){
             }
         }
     }
+
+    fun initLocationTracking() {
+
+        /** location updating criteria. Here the fused location updates will occur depending on the distance travelled
+        from last update happened
+         **/
+
+        locationRequest = LocationRequest()
+            .setSmallestDisplacement(Constants.DISTANCE_TO_UPDATE)
+            .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+
+        fusedLocationClient =
+            LocationServices.getFusedLocationProviderClient(this)
+
+        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            Log.e(TAG, "location: $location")
+            if (location != null) {
+
+            }
+        }
+
+        locationCallback = object:LocationCallback(){
+            override fun onLocationResult(result: LocationResult?) {
+                result ?: return
+                for(location in result.locations){
+                    Log.e(TAG, "result : ${location.latitude} and ${location.longitude}")
+                    /**
+                    Here I will get the regular location updates depending on the location request criteria I provided
+                     */
+                    //todo api call to retrieve places near this location
+                }
+            }
+        }
+
+
+    }
+
+    fun unregisterLocationTracking(){
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+    }
+
+    fun registerLocationTracking(){
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+
+    }
+
 
     fun checkPermissions(){
         if(ActivityCompat.checkSelfPermission(
