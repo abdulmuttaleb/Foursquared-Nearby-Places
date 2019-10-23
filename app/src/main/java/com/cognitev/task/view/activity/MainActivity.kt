@@ -40,8 +40,6 @@ class MainActivity : BaseActivity(){
 
         checkPermissions()
 
-        initLocationTracking()
-
         activityInit()
     }
 
@@ -50,17 +48,21 @@ class MainActivity : BaseActivity(){
 
         operationalMode.postValue(sharedPreferences.getString(Constants.PREF_MODE_KEY, Constants.MODE_REALTIME))
 
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
         operationalMode.observe(this, Observer {
             Log.e(TAG, "operationModeObserver: $it")
             when(it){
                 Constants.MODE_REALTIME ->{
                     typeSwitchTextView.text = "Realtime"
                     registerLocationTracking()
+                    initRegularLocationTracking()
                 }
 
                 Constants.MODE_SINGLE->{
                     typeSwitchTextView.text = "Single Update"
                     unregisterLocationTracking()
+                    initOnetimeLocationFetching()
                 }
             }
         })
@@ -111,25 +113,22 @@ class MainActivity : BaseActivity(){
         }
     }
 
-    fun initLocationTracking() {
 
-        /** location updating criteria. Here the fused location updates will occur depending on the distance travelled
-        from last update happened
-         **/
+    fun initOnetimeLocationFetching(){
 
-        locationRequest = LocationRequest()
-            .setSmallestDisplacement(Constants.DISTANCE_TO_UPDATE)
-            .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
-
-        fusedLocationClient =
-            LocationServices.getFusedLocationProviderClient(this)
 
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
             Log.e(TAG, "location: $location")
             if (location != null) {
-
+                //todo api call with location
             }
         }
+    }
+
+    fun initRegularLocationTracking() {
+        locationRequest = LocationRequest()
+            .setSmallestDisplacement(Constants.DISTANCE_TO_UPDATE)
+            .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
 
         locationCallback = object:LocationCallback(){
             override fun onLocationResult(result: LocationResult?) {
