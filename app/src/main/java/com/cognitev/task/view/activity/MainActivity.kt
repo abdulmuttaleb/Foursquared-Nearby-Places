@@ -23,13 +23,16 @@ import androidx.core.app.ComponentActivity.ExtraData
 import androidx.core.content.ContextCompat.getSystemService
 import android.icu.lang.UCharacter.GraphemeClusterBreak.T
 import android.location.Location
+import com.cognitev.task.model.Venue
 import com.cognitev.task.model.VenueLocation
 import com.cognitev.task.remote.repository.VenuesRepository
+import com.cognitev.task.view.adapter.VenueRecyclerAdapter
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.text.SimpleDateFormat
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 class MainActivity : BaseActivity(){
@@ -39,6 +42,9 @@ class MainActivity : BaseActivity(){
     lateinit var emptyDataView:View
     lateinit var noConnectionView:View
     lateinit var loadingView:View
+
+    lateinit var venueRecyclerAdapter:VenueRecyclerAdapter
+    var venuesList:MutableList<Venue> = mutableListOf()
 
     lateinit var sharedPreferences:SharedPreferences
 
@@ -66,30 +72,15 @@ class MainActivity : BaseActivity(){
 
         operationalMode.postValue(sharedPreferences.getString(Constants.PREF_MODE_KEY, Constants.MODE_REALTIME))
 
-        initLocationVars()
-
-        operationalMode.observe(this, Observer {
-            Log.e(TAG, "operationModeObserver: $it")
-            when(it){
-                Constants.MODE_REALTIME ->{
-                    typeSwitchTextView.text = "Realtime"
-                    registerLocationTracking()
-                }
-
-                Constants.MODE_SINGLE->{
-                    typeSwitchTextView.text = "Single Update"
-                    unregisterLocationTracking()
-                    getOneshotLocation()
-                }
-            }
-        })
-
         // init ui vars
         typeSwitchTextView = findViewById(R.id.tv_type_switch)
         placesRecyclerView = findViewById(R.id.rv_places)
         emptyDataView = findViewById(R.id.cl_empty)
         noConnectionView = findViewById(R.id.cl_no_connection)
         loadingView = findViewById(R.id.cl_loading)
+
+        venueRecyclerAdapter = VenueRecyclerAdapter(this as BaseActivity, venuesList)
+        placesRecyclerView.adapter = venueRecyclerAdapter
 
         //init click functionality
         typeSwitchTextView.setOnClickListener {
@@ -109,6 +100,24 @@ class MainActivity : BaseActivity(){
                     noConnectionView.visibility = View.VISIBLE
                     placesRecyclerView.visibility = View.GONE
                     emptyDataView.visibility = View.GONE
+                }
+            }
+        })
+
+        initLocationVars()
+
+        operationalMode.observe(this, Observer {
+            Log.e(TAG, "operationModeObserver: $it")
+            when(it){
+                Constants.MODE_REALTIME ->{
+                    typeSwitchTextView.text = "Realtime"
+                    registerLocationTracking()
+                }
+
+                Constants.MODE_SINGLE->{
+                    typeSwitchTextView.text = "Single Update"
+                    unregisterLocationTracking()
+                    getOneshotLocation()
                 }
             }
         })
@@ -196,6 +205,10 @@ class MainActivity : BaseActivity(){
             .subscribe(
                 {
                     Log.e(TAG, "response: ${it.body()!!.response!!.venues}")
+                    val venues = it.body()!!.response!!.venues
+                    venuesList.addAll(venues!!)
+                    venueRecyclerAdapter.notifyDataSetChanged()
+
                     if(loadingView.visibility == View.VISIBLE){
                         loadingView.visibility = View.GONE
                     }
