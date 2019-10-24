@@ -23,10 +23,14 @@ import androidx.core.app.ComponentActivity.ExtraData
 import androidx.core.content.ContextCompat.getSystemService
 import android.icu.lang.UCharacter.GraphemeClusterBreak.T
 import android.location.Location
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProviders
 import com.cognitev.task.model.Venue
 import com.cognitev.task.model.VenueLocation
 import com.cognitev.task.remote.repository.VenuesRepository
 import com.cognitev.task.view.adapter.VenueRecyclerAdapter
+import com.cognitev.task.viewmodel.VenueViewModel
+import com.cognitev.task.viewmodel.VenueViewModelFactory
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.text.SimpleDateFormat
@@ -58,6 +62,9 @@ class MainActivity : BaseActivity(){
 
     var firstTimeLoading:Boolean = true
 
+    //architecture vars
+    lateinit var venuesViewModel:VenueViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -78,6 +85,13 @@ class MainActivity : BaseActivity(){
         emptyDataView = findViewById(R.id.cl_empty)
         noConnectionView = findViewById(R.id.cl_no_connection)
         loadingView = findViewById(R.id.cl_loading)
+
+        venuesViewModel = ViewModelProviders.of(this, VenueViewModelFactory(this)).get(VenueViewModel::class.java)
+
+        venuesViewModel.getVenuesLiveData().observe(this, Observer {
+            venuesList.clear()
+            venuesList.addAll(it)
+        })
 
         venueRecyclerAdapter = VenueRecyclerAdapter(this as BaseActivity, venuesList)
         placesRecyclerView.adapter = venueRecyclerAdapter
@@ -146,7 +160,10 @@ class MainActivity : BaseActivity(){
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
             Log.e(TAG, "lastLocation: $location")
             if (location != null) {
-                compriseApiCall(location)
+                if(venuesViewModel.getVenuesLiveData().value!!.isEmpty()) {
+                    venuesViewModel.fetchVenues(location, venueRecyclerAdapter, loadingView)
+                    venuesViewModel.setLocation(location)
+                }
             }
         }
     }
@@ -172,7 +189,16 @@ class MainActivity : BaseActivity(){
                     /**
                     Here I will get the regular location updates depending on the location request criteria I provided
                      */
-                    compriseApiCall(location)
+                    /**
+                    I am checking if the location value I have in the view model already is null, first creating view model,
+                     or it is equal to the value already present, in case the user changes the app orientation, so it doesn't
+                     have to make the call again
+                     */
+                    if(venuesViewModel.getLocation()== null && venuesViewModel.getLocation() != location) {
+                        Log.e(TAG, "viewModelLocation: ${venuesViewModel.getLocation()}")
+                        venuesViewModel.fetchVenues(location, venueRecyclerAdapter, loadingView)
+                        venuesViewModel.setLocation(location)
+                    }
                 }
             }
         }
@@ -187,40 +213,6 @@ class MainActivity : BaseActivity(){
     fun registerLocationTracking(){
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
 
-    }
-
-    fun compriseApiCall(location:Location){
-        if(firstTimeLoading){
-            loadingView.visibility = View.VISIBLE
-            firstTimeLoading = false
-        }
-        val version = SimpleDateFormat("YYYYMMdd").format(Date())
-        val tempLocation = location.latitude.toString().plus(", ").plus(location.longitude)
-        Log.e(TAG, "version: $version")
-        Log.e(TAG, "location: $tempLocation")
-        val disposable = VenuesRepository.getInstance(applicationContext)
-            .getVenuesByLocation(version, tempLocation)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                {
-                    Log.e(TAG, "response: ${it.body()!!.response!!.venues}")
-                    val venues = it.body()!!.response!!.venues
-                    venuesList.addAll(venues!!)
-                    venueRecyclerAdapter.notifyDataSetChanged()
-
-                    if(loadingView.visibility == View.VISIBLE){
-                        loadingView.visibility = View.GONE
-                    }
-                },
-                {
-                    Log.e(TAG, "getVenuesException: $it")
-                    if(loadingView.visibility == View.VISIBLE){
-                        loadingView.visibility = View.GONE
-                    }
-                }
-            )
-        disposables.add(disposable)
     }
 
     fun checkPermissions(){
