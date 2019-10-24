@@ -7,7 +7,7 @@ class MetaResponse {
 
     @SerializedName("code")
     @Expose
-    var code:String? = null
+    var code:Int? = null
 
     @SerializedName("requestId")
     @Expose

@@ -1,5 +1,6 @@
 package com.cognitev.task.remote
 
+import com.cognitev.task.remote.responses.GetPhotoBaseResponse
 import com.cognitev.task.remote.responses.SearchBaseResponse
 import com.cognitev.task.utils.Constants
 import io.reactivex.Observable
@@ -11,6 +12,7 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
+import retrofit2.http.Url
 import java.util.concurrent.TimeUnit
 
 interface ApiService{
@@ -21,6 +23,12 @@ interface ApiService{
                             @Query("client_secret") clientSecret:String,
                             @Query("v") version:String,
                             @Query("ll") location:String):Observable<Response<SearchBaseResponse>>
+
+    @GET
+    fun getVenuePhoto(@Url url:String,
+                      @Query("client_id") clientId:String,
+                      @Query("client_secret") clientSecret:String,
+                      @Query("v") version:String):Observable<Response<GetPhotoBaseResponse>>
 
     companion object{
         fun create(): ApiService {
