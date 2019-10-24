@@ -22,7 +22,13 @@ import com.google.android.gms.location.LocationServices
 import androidx.core.app.ComponentActivity.ExtraData
 import androidx.core.content.ContextCompat.getSystemService
 import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-
+import com.cognitev.task.model.VenueLocation
+import com.cognitev.task.remote.repository.VenuesRepository
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
+import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 
 class MainActivity : BaseActivity(){
@@ -123,10 +129,27 @@ class MainActivity : BaseActivity(){
 
     fun getOneshotLocation(){
 
-        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-            Log.e(TAG, "location: $location")
-            if (location != null) {
+        fusedLocationClient.lastLocation.addOnSuccessListener { lastLocation ->
+            Log.e(TAG, "lastLocation: $lastLocation")
+            if (lastLocation != null) {
                 //todo api call with location
+                val version = SimpleDateFormat("YYYYMMdd").format(Date())
+                val location = lastLocation.latitude.toString().plus(", ").plus(lastLocation.longitude)
+                Log.e(TAG, "version: $version")
+                Log.e(TAG, "location: $location")
+                val disposable = VenuesRepository.getInstance(this)
+                    .getVenuesByLocation(version, location)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                        {
+                            Log.e(TAG, "response: ${it.body()!!.response!!.venues}")
+                        },
+                        {
+                            Log.e(TAG, "getVenuesException: $it")
+                        }
+                    )
+                disposables.add(disposable)
             }
         }
     }
