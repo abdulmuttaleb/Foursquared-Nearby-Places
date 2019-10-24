@@ -15,8 +15,15 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
 import com.cognitev.task.R
 import com.cognitev.task.utils.Constants
+import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.*
 import org.json.JSONObject
+import com.google.android.gms.location.LocationServices
+import androidx.core.app.ComponentActivity.ExtraData
+import androidx.core.content.ContextCompat.getSystemService
+import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+
+
 
 class MainActivity : BaseActivity(){
 
@@ -30,6 +37,7 @@ class MainActivity : BaseActivity(){
     var operationalMode: MutableLiveData<String> = MutableLiveData()
 
     //location vars
+    lateinit var googleApiClient:GoogleApiClient
     private lateinit var locationCallback: LocationCallback
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     lateinit var locationRequest:LocationRequest
@@ -48,7 +56,7 @@ class MainActivity : BaseActivity(){
 
         operationalMode.postValue(sharedPreferences.getString(Constants.PREF_MODE_KEY, Constants.MODE_REALTIME))
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        initLocationVars()
 
         operationalMode.observe(this, Observer {
             Log.e(TAG, "operationModeObserver: $it")
@@ -56,13 +64,12 @@ class MainActivity : BaseActivity(){
                 Constants.MODE_REALTIME ->{
                     typeSwitchTextView.text = "Realtime"
                     registerLocationTracking()
-                    initRegularLocationTracking()
                 }
 
                 Constants.MODE_SINGLE->{
                     typeSwitchTextView.text = "Single Update"
                     unregisterLocationTracking()
-                    initOnetimeLocationFetching()
+                    getOneshotLocation()
                 }
             }
         })
@@ -114,8 +121,7 @@ class MainActivity : BaseActivity(){
     }
 
 
-    fun initOnetimeLocationFetching(){
-
+    fun getOneshotLocation(){
 
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
             Log.e(TAG, "location: $location")
@@ -125,10 +131,18 @@ class MainActivity : BaseActivity(){
         }
     }
 
-    fun initRegularLocationTracking() {
+    fun initLocationVars() {
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
         locationRequest = LocationRequest()
             .setSmallestDisplacement(Constants.DISTANCE_TO_UPDATE)
-            .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+
+        googleApiClient = GoogleApiClient.Builder(applicationContext)
+            .addApi(LocationServices.API)
+            .build()
+        googleApiClient.connect()
 
         locationCallback = object:LocationCallback(){
             override fun onLocationResult(result: LocationResult?) {
