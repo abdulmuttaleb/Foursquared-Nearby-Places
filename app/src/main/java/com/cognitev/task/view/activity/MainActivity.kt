@@ -38,6 +38,7 @@ class MainActivity : BaseActivity(){
     lateinit var placesRecyclerView: RecyclerView
     lateinit var emptyDataView:View
     lateinit var noConnectionView:View
+    lateinit var loadingView:View
 
     lateinit var sharedPreferences:SharedPreferences
 
@@ -48,6 +49,8 @@ class MainActivity : BaseActivity(){
     private lateinit var locationCallback: LocationCallback
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     lateinit var locationRequest:LocationRequest
+
+    var firstTimeLoading:Boolean = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,6 +89,7 @@ class MainActivity : BaseActivity(){
         placesRecyclerView = findViewById(R.id.rv_places)
         emptyDataView = findViewById(R.id.cl_empty)
         noConnectionView = findViewById(R.id.cl_no_connection)
+        loadingView = findViewById(R.id.cl_loading)
 
         //init click functionality
         typeSwitchTextView.setOnClickListener {
@@ -177,6 +181,10 @@ class MainActivity : BaseActivity(){
     }
 
     fun compriseApiCall(location:Location){
+        if(firstTimeLoading){
+            loadingView.visibility = View.VISIBLE
+            firstTimeLoading = false
+        }
         val version = SimpleDateFormat("YYYYMMdd").format(Date())
         val tempLocation = location.latitude.toString().plus(", ").plus(location.longitude)
         Log.e(TAG, "version: $version")
@@ -188,9 +196,15 @@ class MainActivity : BaseActivity(){
             .subscribe(
                 {
                     Log.e(TAG, "response: ${it.body()!!.response!!.venues}")
+                    if(loadingView.visibility == View.VISIBLE){
+                        loadingView.visibility = View.GONE
+                    }
                 },
                 {
                     Log.e(TAG, "getVenuesException: $it")
+                    if(loadingView.visibility == View.VISIBLE){
+                        loadingView.visibility = View.GONE
+                    }
                 }
             )
         disposables.add(disposable)
