@@ -17,26 +17,12 @@ import com.cognitev.task.R
 import com.cognitev.task.utils.Constants
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.*
-import org.json.JSONObject
 import com.google.android.gms.location.LocationServices
-import androidx.core.app.ComponentActivity.ExtraData
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-import android.location.Location
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProviders
 import com.cognitev.task.model.Venue
-import com.cognitev.task.model.VenueLocation
-import com.cognitev.task.remote.repository.VenuesRepository
 import com.cognitev.task.view.adapter.VenueRecyclerAdapter
-import com.cognitev.task.viewmodel.VenueViewModel
-import com.cognitev.task.viewmodel.VenueViewModelFactory
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
-import java.text.SimpleDateFormat
-import java.time.format.DateTimeFormatter
-import java.util.*
-import kotlin.collections.ArrayList
+import com.cognitev.task.viewmodel.VenuesViewModel
+import com.cognitev.task.viewmodel.VenuesViewModelFactory
 
 
 class MainActivity : BaseActivity(){
@@ -63,7 +49,7 @@ class MainActivity : BaseActivity(){
     var firstTimeLoading:Boolean = true
 
     //architecture vars
-    lateinit var venuesViewModel:VenueViewModel
+    lateinit var venuesViewModel:VenuesViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,7 +72,7 @@ class MainActivity : BaseActivity(){
         noConnectionView = findViewById(R.id.cl_no_connection)
         loadingView = findViewById(R.id.cl_loading)
 
-        venuesViewModel = ViewModelProviders.of(this, VenueViewModelFactory(this)).get(VenueViewModel::class.java)
+        venuesViewModel = ViewModelProviders.of(this, VenuesViewModelFactory(this)).get(VenuesViewModel::class.java)
 
         venuesViewModel.getVenuesLiveData().observe(this, Observer {
             venuesList.clear()

@@ -5,10 +5,10 @@ import androidx.lifecycle.ViewModelProvider
 import com.cognitev.task.view.activity.BaseActivity
 import java.lang.IllegalArgumentException
 
-class VenueViewModelFactory (val activity: BaseActivity): ViewModelProvider.Factory{
+class VenuesViewModelFactory (val activity: BaseActivity): ViewModelProvider.Factory{
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        if(modelClass.isAssignableFrom(VenueViewModel::class.java)){
-            return VenueViewModel(activity) as T
+        if(modelClass.isAssignableFrom(VenuesViewModel::class.java)){
+            return VenuesViewModel(activity) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

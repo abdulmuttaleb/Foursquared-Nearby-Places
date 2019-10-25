@@ -1,5 +1,6 @@
 package com.cognitev.task.viewmodel
 
+import android.graphics.Bitmap
 import android.location.Location
 import android.util.Log
 import android.view.View
@@ -16,13 +17,18 @@ import io.reactivex.schedulers.Schedulers
 import java.text.SimpleDateFormat
 import java.util.*
 
-class VenueViewModel(var activity: BaseActivity) :ViewModel(){
+class VenuesViewModel(var activity: BaseActivity) :ViewModel(){
     private var venuesList: MutableLiveData<List<Venue>> = MutableLiveData(arrayListOf())
+    private var venuesBitmapList: MutableMap<String, Bitmap> = mutableMapOf()
     private var firstTimeLoading:Boolean = true
     private var location:Location? = null
 
     fun getVenuesLiveData():MutableLiveData<List<Venue>>{
         return venuesList
+    }
+
+    fun getVenuesBitmap():MutableMap<String, Bitmap>{
+        return venuesBitmapList
     }
 
     fun setLocation(location: Location){
@@ -43,7 +49,7 @@ class VenueViewModel(var activity: BaseActivity) :ViewModel(){
         val tempLocation = location.latitude.toString().plus(", ").plus(location.longitude)
         Log.e(MainActivity.TAG, "version: $version")
         Log.e(MainActivity.TAG, "location: $tempLocation")
-        val disposable = VenuesRepository.getInstance(activity!!.applicationContext)
+        val disposable = VenuesRepository.getInstance(activity.applicationContext)
             .getVenuesByLocation(version, tempLocation)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -69,6 +75,6 @@ class VenueViewModel(var activity: BaseActivity) :ViewModel(){
     }
 
     companion object{
-        const val TAG = "VenueViewModel"
+        const val TAG = "VenuesViewModel"
     }
 }
