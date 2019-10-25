@@ -11,6 +11,7 @@ import android.widget.TextView
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.cognitev.task.R
@@ -19,6 +20,7 @@ import com.cognitev.task.model.VenuePhoto
 import com.cognitev.task.remote.repository.VenuesRepository
 import com.cognitev.task.view.activity.BaseActivity
 import com.cognitev.task.viewmodel.VenuesViewModel
+import com.squareup.picasso.Picasso
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.text.SimpleDateFormat
@@ -50,7 +52,8 @@ class VenueRecyclerAdapter() : RecyclerView.Adapter<VenueRecyclerAdapter.VenueVi
         holder.venueDescription.text =
             venue.categories!![0].name.plus(" - ").plus(venue.location!!.formattedAddress!![0])
 
-        if(!venueViewModel.getVenuesBitmap().containsKey(venue.id)) {
+        val imageUrl = venue.photoUrl
+        if(imageUrl.isNullOrEmpty()) {
             val disposable = VenuesRepository.getInstance(activity!!)
                 .getVenuePhoto(SimpleDateFormat("YYYYMMdd").format(Date()), venue.id!!)
                 .subscribeOn(Schedulers.io())
@@ -63,8 +66,7 @@ class VenueRecyclerAdapter() : RecyclerView.Adapter<VenueRecyclerAdapter.VenueVi
                                 comprisePhotoAndLoad(
                                     response.body()!!.response!!.photosArrayResponse!!.photos!![0],
                                     holder.venueImage,
-                                    venue.id!!
-                                )
+                                    venue)
                             }
                         }
                     },
@@ -74,25 +76,25 @@ class VenueRecyclerAdapter() : RecyclerView.Adapter<VenueRecyclerAdapter.VenueVi
                 )
             activity!!.disposables.add(disposable)
         }else{
-            holder.venueImage.setImageBitmap(venueViewModel.getVenuesBitmap()[venue.id])
-            Log.e(TAG, "venueImage: alreadyFetched + ${venue.id}")
+            Picasso.get()
+                .load(imageUrl)
+                .centerCrop()
+                .resize(300,200)
+                .into(holder.venueImage)
+            Log.e(TAG, "venueImage: alreadyFetched + ${venue.id} + $imageUrl")
         }
     }
 
-    private fun comprisePhotoAndLoad(venuePhoto: VenuePhoto, venueImage: ImageView, venueId:String) {
-        val imageUrl = venuePhoto.prefix.plus("300x200").plus(venuePhoto.suffix)
-        Glide.with(activity!!.applicationContext)
-            .asBitmap()
-            .load(imageUrl)
-            .into(object: CustomTarget<Bitmap>(){
-                override fun onLoadCleared(placeholder: Drawable?) {
-                }
+    private fun comprisePhotoAndLoad(venuePhoto: VenuePhoto, venueImage: ImageView, venue:Venue) {
 
-                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                    venueViewModel.getVenuesBitmap()[venueId] = resource
-                    venueImage.setImageBitmap(resource)
-                }
-            })
+        val imageUrl = venuePhoto.prefix.plus("300x200").plus(venuePhoto.suffix)
+        venue.photoUrl = imageUrl
+
+        Picasso.get()
+            .load(imageUrl)
+            .centerCrop()
+            .resize(300,200)
+            .into(venueImage)
     }
 
     inner class VenueViewHolder(itemView: View):RecyclerView.ViewHolder(itemView){

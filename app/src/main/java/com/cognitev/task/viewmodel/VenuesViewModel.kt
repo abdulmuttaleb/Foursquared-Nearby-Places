@@ -19,7 +19,7 @@ import java.util.*
 
 class VenuesViewModel(var activity: BaseActivity) :ViewModel(){
     private var venuesList: MutableLiveData<List<Venue>> = MutableLiveData(arrayListOf())
-    private var venuesBitmapList: MutableMap<String, Bitmap> = mutableMapOf()
+//    private var venuesBitmapList: MutableMap<String, Bitmap> = mutableMapOf()
     private var firstTimeLoading:Boolean = true
     private var location:Location? = null
 
@@ -27,9 +27,9 @@ class VenuesViewModel(var activity: BaseActivity) :ViewModel(){
         return venuesList
     }
 
-    fun getVenuesBitmap():MutableMap<String, Bitmap>{
-        return venuesBitmapList
-    }
+//    fun getVenuesBitmap():MutableMap<String, Bitmap>{
+//        return venuesBitmapList
+//    }
 
     fun setLocation(location: Location){
         this.location = location
