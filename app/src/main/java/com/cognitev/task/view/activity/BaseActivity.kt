@@ -11,7 +11,7 @@ import io.reactivex.disposables.Disposable
 open class BaseActivity : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverListener {
 
     var disposables: ArrayList<Disposable> = arrayListOf()
-    var isOnline = MutableLiveData<Boolean>().apply { value = false }
+    var isOnline = MutableLiveData<Boolean>().apply { value = true }
 
     override fun onPause() {
         super.onPause()

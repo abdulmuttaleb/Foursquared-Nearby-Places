@@ -82,6 +82,14 @@ class MainActivity : BaseActivity(){
         venuesViewModel.getVenuesLiveData().observe(this, Observer {
             venuesList.clear()
             venuesList.addAll(it)
+            venueRecyclerAdapter.notifyDataSetChanged()
+            if(it.isEmpty()){
+                emptyDataView.visibility = View.VISIBLE
+                placesRecyclerView.visibility = View.GONE
+            }else{
+                emptyDataView.visibility = View.GONE
+                placesRecyclerView.visibility = View.VISIBLE
+            }
         })
 
         venueRecyclerAdapter = VenueRecyclerAdapter(this as BaseActivity, venuesList)
@@ -102,31 +110,12 @@ class MainActivity : BaseActivity(){
                 }
 
                 false ->{
-                    noConnectionView.visibility = View.VISIBLE
-                    placesRecyclerView.visibility = View.GONE
-                    emptyDataView.visibility = View.GONE
+                    fetchCachedPlaces()
                 }
             }
         })
 
-        //fetch cached venues in case the next location requests don't work
-        Observable.just(venuesViewModel.getVenueDatabase())
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                { db ->
-                    db!!.venueDao().getAllVenues().observe(this, Observer {
-                        venuesList.clear()
-                        venuesList.addAll(ArrayList(it))
-                        venueRecyclerAdapter.notifyDataSetChanged()
-                    }).also {
-                        db.venueDao().getAllVenues().removeObservers(this)
-                    }
-                },
-                {
-                    Log.e(TAG, "fetchVenuesException: ${it.message}")
-                }
-            )
+        fetchCachedPlaces()
 
         initLocationVars()
 
@@ -145,6 +134,26 @@ class MainActivity : BaseActivity(){
                 }
             }
         })
+    }
+
+    fun fetchCachedPlaces(){
+        //fetch cached venues in case the next location requests don't work
+        Observable.just(venuesViewModel.getVenueDatabase())
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                { db ->
+                    db!!.venueDao().getAllVenues().observe(this, Observer {
+                        Log.e(TAG, "cachedList: $it")
+                        venuesViewModel.getVenuesLiveData().postValue(it)
+                    }).also {
+                        db.venueDao().getAllVenues().removeObservers(this)
+                    }
+                },
+                {
+                    Log.e(TAG, "fetchVenuesException: ${it.message}")
+                }
+            )
     }
 
     fun switchMode(){
