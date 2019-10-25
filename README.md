@@ -6,7 +6,7 @@ This application fetches venues from foursquared API
 Please, provide your client_id and client_secret, you get from Foursquared when you register an app, in **gradle.properties** file to be able to build this application
 
 
-##Libraries used to make this application
+#Libraries used to make this application
 - Kotlin
 - Retrofit for API Calls
 - Gson for serializing and deserializing data
