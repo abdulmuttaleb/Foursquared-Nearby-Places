@@ -10,6 +10,10 @@ interface VenueDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertVenue(venue: Venue)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @JvmSuppressWildcards
+    fun insertVenues(venue: List<Venue>)
+
     @Query("DELETE FROM venue_table")
     fun deleteAllVenues()
 

@@ -8,20 +8,28 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.cognitev.task.model.Venue
+import com.cognitev.task.model.database.VenueRoomDatabase
 import com.cognitev.task.remote.repository.VenuesRepository
 import com.cognitev.task.view.activity.BaseActivity
 import com.cognitev.task.view.activity.MainActivity
 import com.cognitev.task.view.adapter.VenueRecyclerAdapter
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.concurrent.thread
 
 class VenuesViewModel(var activity: BaseActivity) :ViewModel(){
     private var venuesList: MutableLiveData<List<Venue>> = MutableLiveData(arrayListOf())
 //    private var venuesBitmapList: MutableMap<String, Bitmap> = mutableMapOf()
     private var firstTimeLoading:Boolean = true
     private var location:Location? = null
+    private var venuesDatabase: VenueRoomDatabase? =null
+
+    init {
+        venuesDatabase = VenueRoomDatabase.getInstance(activity)
+    }
 
     fun getVenuesLiveData():MutableLiveData<List<Venue>>{
         return venuesList
@@ -59,6 +67,17 @@ class VenuesViewModel(var activity: BaseActivity) :ViewModel(){
                     val venues = it.body()!!.response!!.venues
                     venuesList.postValue(venues!!)
                     venueRecyclerAdapter.notifyDataSetChanged()
+                    Observable.just(venuesDatabase)
+                        .subscribeOn(Schedulers.io())
+                        .subscribe(
+                            {db->
+                                db!!.venueDao().insertVenues(venues)
+                            },
+                            { exception ->
+                                Log.e(TAG, "databaseException: ${exception.message}")
+                            }
+                        )
+//                    venuesDatabase!!.venueDao().insertVenues(venues)
 
                     if(loadingView.visibility == View.VISIBLE){
                         loadingView.visibility = View.GONE

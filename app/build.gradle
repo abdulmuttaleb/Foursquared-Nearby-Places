@@ -4,6 +4,8 @@ apply plugin: 'kotlin-android'
 
 apply plugin: 'kotlin-android-extensions'
 
+apply plugin: 'kotlin-kapt'
+
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.2"
@@ -63,12 +65,12 @@ dependencies {
 
     // Lifecycle components
     implementation "androidx.lifecycle:lifecycle-extensions:$rootProject.archLifecycleVersion"
-    annotationProcessor "androidx.lifecycle:lifecycle-compiler:$rootProject.archLifecycleVersion"
+    kapt "androidx.lifecycle:lifecycle-compiler:$rootProject.archLifecycleVersion"
 
 
     // Room components
     implementation "androidx.room:room-runtime:$rootProject.roomVersion"
-    annotationProcessor "androidx.room:room-compiler:$rootProject.roomVersion"
+    kapt "androidx.room:room-compiler:$rootProject.roomVersion"
     androidTestImplementation "androidx.room:room-testing:$rootProject.roomVersion"
 
 

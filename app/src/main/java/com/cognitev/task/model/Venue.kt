@@ -1,10 +1,7 @@
 package com.cognitev.task.model
 
 import androidx.annotation.NonNull
-import androidx.room.ColumnInfo
-import androidx.room.Embedded
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import androidx.room.*
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 import org.jetbrains.annotations.NonNls
@@ -13,9 +10,10 @@ import org.jetbrains.annotations.NonNls
 data class Venue(
     @PrimaryKey
     @ColumnInfo(name = "id")
+    @NonNull
     @SerializedName("id")
     @Expose
-    var id:String? = null,
+    var id:String,
 
     @ColumnInfo(name = "name")
     @SerializedName("name")
