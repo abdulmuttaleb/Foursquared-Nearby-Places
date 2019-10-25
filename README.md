@@ -25,3 +25,6 @@ kotlin.code.style=official
 foursquared_client_id = YOUR_CLIENT_ID
 foursquared_client_secret = YOUR_CLIENT_SECRET
 ```
+
+> **Note**
+Photos API has a daily quota of retrieving a place photos one time. Make sure to upgrade your account to free user so it can provide more quota for you
