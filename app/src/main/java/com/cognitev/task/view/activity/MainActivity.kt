@@ -149,13 +149,25 @@ class MainActivity : BaseActivity(){
                     }).also {
                         db.venueDao().getAllVenues().removeObservers(this)
                     }
+                    hideErrorView()
                 },
                 {
                     Log.e(TAG, "fetchVenuesException: ${it.message}")
+                    showErrorView()
                 }
             )
     }
 
+    fun showErrorView(){
+        noConnectionView.visibility = View.VISIBLE
+    }
+
+    fun hideErrorView(){
+        if(noConnectionView.visibility == View.VISIBLE)
+        {
+            noConnectionView.visibility = View.GONE
+        }
+    }
     fun switchMode(){
         val editor =  sharedPreferences.edit()
         when(operationalMode.value){
