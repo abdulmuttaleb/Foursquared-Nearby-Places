@@ -6,6 +6,7 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Looper
+import android.util.AndroidException
 import android.util.Log
 import android.view.View
 import android.widget.TextView
@@ -23,6 +24,10 @@ import com.cognitev.task.model.Venue
 import com.cognitev.task.view.adapter.VenueRecyclerAdapter
 import com.cognitev.task.viewmodel.VenuesViewModel
 import com.cognitev.task.viewmodel.VenuesViewModelFactory
+import io.reactivex.Observable
+import io.reactivex.Scheduler
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 
 
 class MainActivity : BaseActivity(){
@@ -104,6 +109,25 @@ class MainActivity : BaseActivity(){
             }
         })
 
+        //fetch cached venues in case the next location requests don't work
+        Observable.just(venuesViewModel.getVenueDatabase())
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                { db ->
+                    db!!.venueDao().getAllVenues().observe(this, Observer {
+                        venuesList.clear()
+                        venuesList.addAll(ArrayList(it))
+                        venueRecyclerAdapter.notifyDataSetChanged()
+                    }).also {
+                        db.venueDao().getAllVenues().removeObservers(this)
+                    }
+                },
+                {
+                    Log.e(TAG, "fetchVenuesException: ${it.message}")
+                }
+            )
+
         initLocationVars()
 
         operationalMode.observe(this, Observer {
@@ -169,8 +193,7 @@ class MainActivity : BaseActivity(){
 
         locationCallback = object:LocationCallback(){
             override fun onLocationResult(result: LocationResult?) {
-                result ?: return
-                for(location in result.locations){
+                for(location in result!!.locations){
                     Log.e(TAG, "result : ${location.latitude} and ${location.longitude}")
                     /**
                     Here I will get the regular location updates depending on the location request criteria I provided
