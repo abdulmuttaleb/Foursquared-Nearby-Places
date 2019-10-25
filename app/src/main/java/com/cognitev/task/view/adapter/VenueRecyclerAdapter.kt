@@ -17,10 +17,12 @@ import com.bumptech.glide.request.transition.Transition
 import com.cognitev.task.R
 import com.cognitev.task.model.Venue
 import com.cognitev.task.model.VenuePhoto
+import com.cognitev.task.model.database.VenueRoomDatabase
 import com.cognitev.task.remote.repository.VenuesRepository
 import com.cognitev.task.view.activity.BaseActivity
 import com.cognitev.task.viewmodel.VenuesViewModel
 import com.squareup.picasso.Picasso
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.text.SimpleDateFormat
@@ -31,11 +33,13 @@ class VenueRecyclerAdapter() : RecyclerView.Adapter<VenueRecyclerAdapter.VenueVi
     var activity:BaseActivity? = null
     var venuesList:List<Venue> = arrayListOf()
     lateinit var venueViewModel: VenuesViewModel
+    private var venuesDatabase: VenueRoomDatabase? =null
 
     constructor(activity: BaseActivity, venuesList:List<Venue>):this(){
         this.activity = activity
         this.venuesList = venuesList
         venueViewModel = ViewModelProviders.of(activity).get(VenuesViewModel::class.java)
+        venuesDatabase = venueViewModel.getVenueDatabase()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VenueViewHolder {
@@ -89,6 +93,17 @@ class VenueRecyclerAdapter() : RecyclerView.Adapter<VenueRecyclerAdapter.VenueVi
 
         val imageUrl = venuePhoto.prefix.plus("300x200").plus(venuePhoto.suffix)
         venue.photoUrl = imageUrl
+
+        Observable.just(venuesDatabase)
+            .subscribeOn(Schedulers.io())
+            .subscribe(
+                {db->
+                    db!!.venueDao().updateVenuePhotoUrl(venue.id, imageUrl)
+                },
+                {exception->
+                    Log.e(TAG, "databaseException: ${exception.message}")
+                }
+            )
 
         Picasso.get()
             .load(imageUrl)

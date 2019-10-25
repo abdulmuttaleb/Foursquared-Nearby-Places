@@ -23,6 +23,9 @@ interface VenueDao {
     @Update
     fun updateVenue(venue: Venue)
 
+    @Query("UPDATE venue_table SET photoUrl=:photoUrl WHERE id=:id")
+    fun updateVenuePhotoUrl(id:String, photoUrl:String)
+
     @Update
     fun updateVenues(vararg venues:Venue)
 }

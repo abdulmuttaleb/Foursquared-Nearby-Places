@@ -39,6 +39,10 @@ class VenuesViewModel(var activity: BaseActivity) :ViewModel(){
 //        return venuesBitmapList
 //    }
 
+    fun getVenueDatabase():VenueRoomDatabase?{
+        return venuesDatabase
+    }
+
     fun setLocation(location: Location){
         this.location = location
         Log.e(TAG, "setLocation: ${this.location}")
@@ -67,17 +71,18 @@ class VenuesViewModel(var activity: BaseActivity) :ViewModel(){
                     val venues = it.body()!!.response!!.venues
                     venuesList.postValue(venues!!)
                     venueRecyclerAdapter.notifyDataSetChanged()
+                    //cache the results
                     Observable.just(venuesDatabase)
                         .subscribeOn(Schedulers.io())
                         .subscribe(
                             {db->
-                                db!!.venueDao().insertVenues(venues)
+                                db!!.venueDao().deleteAllVenues()
+                                db.venueDao().insertVenues(venues)
                             },
                             { exception ->
                                 Log.e(TAG, "databaseException: ${exception.message}")
                             }
                         )
-//                    venuesDatabase!!.venueDao().insertVenues(venues)
 
                     if(loadingView.visibility == View.VISIBLE){
                         loadingView.visibility = View.GONE
